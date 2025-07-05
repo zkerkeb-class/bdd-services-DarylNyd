@@ -3,10 +3,26 @@ const User = require('../models/User');
 // Create a new user
 exports.createUser = async (req, res) => {
     try {
-        const user = new User(req.body);
+        // Set default values for new users
+        const userData = {
+            ...req.body,
+            status: req.body.status || 'active',
+            role: req.body.role || 'user',
+            emailVerified: req.body.emailVerified || false,
+            createdAt: new Date(),
+            updatedAt: new Date()
+        };
+
+        // If it's a social login user, set emailVerified to true
+        if (userData.socialLogin && userData.socialLogin.provider) {
+            userData.emailVerified = true;
+        }
+
+        const user = new User(userData);
         await user.save();
         res.status(201).json(user);
     } catch (error) {
+        console.error('Error creating user:', error);
         res.status(400).json({
             message: 'Error creating user',
             error: error.message
@@ -23,6 +39,7 @@ exports.getUserById = async (req, res) => {
         }
         res.json(user);
     } catch (error) {
+        console.error('Error finding user by ID:', error);
         res.status(500).json({
             message: 'Error finding user',
             error: error.message
@@ -33,12 +50,13 @@ exports.getUserById = async (req, res) => {
 // Get user by email
 exports.getUserByEmail = async (req, res) => {
     try {
-        const user = await User.findOne({ email: req.params.email });
+        const user = await User.findOne({ email: req.params.email.toLowerCase() });
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
         res.json(user);
     } catch (error) {
+        console.error('Error finding user by email:', error);
         res.status(500).json({
             message: 'Error finding user',
             error: error.message
@@ -55,6 +73,7 @@ exports.getUserByUsername = async (req, res) => {
         }
         res.json(user);
     } catch (error) {
+        console.error('Error finding user by username:', error);
         res.status(500).json({
             message: 'Error finding user',
             error: error.message
@@ -65,9 +84,14 @@ exports.getUserByUsername = async (req, res) => {
 // Update user
 exports.updateUser = async (req, res) => {
     try {
+        const updateData = {
+            ...req.body,
+            updatedAt: new Date()
+        };
+
         const user = await User.findByIdAndUpdate(
             req.params.id,
-            { $set: req.body },
+            { $set: updateData },
             { new: true, runValidators: true }
         );
         if (!user) {
@@ -75,6 +99,7 @@ exports.updateUser = async (req, res) => {
         }
         res.json(user);
     } catch (error) {
+        console.error('Error updating user:', error);
         res.status(500).json({
             message: 'Error updating user',
             error: error.message
@@ -91,6 +116,7 @@ exports.deleteUser = async (req, res) => {
         }
         res.json({ message: 'User deleted successfully' });
     } catch (error) {
+        console.error('Error deleting user:', error);
         res.status(500).json({
             message: 'Error deleting user',
             error: error.message
@@ -111,6 +137,7 @@ exports.getUserBySocialId = async (req, res) => {
         }
         res.json(user);
     } catch (error) {
+        console.error('Error finding user by social ID:', error);
         res.status(500).json({
             message: 'Error finding user',
             error: error.message
@@ -130,6 +157,7 @@ exports.getUserByResetToken = async (req, res) => {
         }
         res.json(user);
     } catch (error) {
+        console.error('Error finding user by reset token:', error);
         res.status(500).json({
             message: 'Error finding user',
             error: error.message
