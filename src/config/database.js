@@ -2,13 +2,15 @@ const { connect, set } = require('mongoose');
 
 const connectDB = async () => {
     set('strictQuery', false);
-    await connect(
-        `mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@${process.env.MONGODB_CLUSTER}.mongodb.net/?retryWrites=true&w=majority`,
-        {
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-        }
-    )
+    
+    // Use MONGODB_URI if available, otherwise construct from individual variables
+    const mongoUri = process.env.MONGODB_URI || 
+        `mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@${process.env.MONGODB_CLUSTER}.mongodb.net/art_advisor?retryWrites=true&w=majority`;
+    
+    await connect(mongoUri, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true
+    })
         .then(() => {
             console.log('Successfully connected to database');
         })

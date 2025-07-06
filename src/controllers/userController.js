@@ -23,6 +23,30 @@ exports.createUser = async (req, res) => {
         res.status(201).json(user);
     } catch (error) {
         console.error('Error creating user:', error);
+        
+        // Handle MongoDB duplicate key errors
+        if (error.code === 11000) {
+            const field = Object.keys(error.keyPattern)[0];
+            const value = error.keyValue[field];
+            
+            if (field === 'email') {
+                return res.status(409).json({
+                    message: 'User already exists with this email',
+                    error: 'Email already registered'
+                });
+            } else if (field === 'username') {
+                return res.status(409).json({
+                    message: 'Username already taken',
+                    error: 'Username already exists'
+                });
+            } else {
+                return res.status(409).json({
+                    message: `Duplicate ${field} value`,
+                    error: `${field} already exists`
+                });
+            }
+        }
+        
         res.status(400).json({
             message: 'Error creating user',
             error: error.message

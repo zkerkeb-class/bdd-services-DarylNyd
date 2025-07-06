@@ -87,6 +87,10 @@ const userSchema = new mongoose.Schema({
     updatedAt: {
         type: Date,
         default: Date.now
+    },
+    currentPlan: {
+        type: String,
+        default: 'free'
     }
 });
 

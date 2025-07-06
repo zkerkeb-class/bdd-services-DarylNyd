@@ -22,6 +22,12 @@ app.get('/', (req, res) => {
 // Routes
 app.use('/api/artworks', require('./routes/artworks'));
 app.use('/api/users', require('./routes/userRoutes'));
+app.use('/api/plans', require('./routes/plans'));
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok' });
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {
