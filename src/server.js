@@ -2,6 +2,9 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/database');
+const promClient = require('prom-client');
+const register = promClient.register;
+promClient.collectDefaultMetrics({ register });
 
 // Initialize Express
 const app = express();
@@ -27,6 +30,12 @@ app.use('/api/plans', require('./routes/plans'));
 // Health check endpoint
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok' });
+});
+
+// Metrics endpoint
+app.get('/metrics', async (req, res) => {
+  res.set('Content-Type', register.contentType);
+  res.end(await register.metrics());
 });
 
 // Error handling middleware
