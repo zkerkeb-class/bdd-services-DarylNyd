@@ -2,6 +2,8 @@
 
 This service handles the database operations for the NydArt Advisor application, managing user profiles, artwork metadata, and analysis results.
 
+by Ndenga Nemeck Yvan Daryl
+
 ## Features
 
 - User profiles storage
