@@ -10,52 +10,58 @@ const artworkSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    description: String,
+    description: {
+        type: String,
+        default: ''
+    },
     imageUrl: {
         type: String,
         required: true
     },
-    publicUrl: {
-        type: String,
-        unique: true
-    },
     metadata: {
-        size: String,
-        medium: String,
-        style: String,
-        dateCreated: Date
+        size: {
+            type: String,
+            enum: ['small', 'medium', 'large'],
+            default: 'medium'
+        },
+        medium: {
+            type: String,
+            enum: ['digital', 'oil', 'acrylic', 'watercolor', 'pencil', 'charcoal', 'mixed-media', 'other'],
+            default: 'digital'
+        },
+        style: {
+            type: String,
+            enum: ['realistic', 'abstract', 'impressionistic', 'surrealistic', 'minimalistic', 'pop-art', 'other'],
+            default: 'other'
+        },
+        dateCreated: Date,
+        dimensions: {
+            width: Number,
+            height: Number,
+            unit: {
+                type: String,
+                enum: ['px', 'cm', 'in'],
+                default: 'px'
+            }
+        }
     },
-    analyses: [{
-        type: {
-            type: String,
-            enum: ['general', 'technique', 'composition', 'color'],
-            required: true
-        },
-        date: {
-            type: Date,
-            default: Date.now
-        },
-        results: {
-            technicalQuality: String,
-            strengths: String,
-            areasForImprovement: String,
-            suggestions: [String],
-            composition: String,
-            colorTheory: String,
-            styleContext: String
-        },
-        learningResources: [{
-            title: String,
-            description: String,
-            url: String,
-            type: String,
-            difficulty: String
-        }]
-    }],
     tags: [String],
     isPublic: {
         type: Boolean,
-        default: false
+        default: true
+    },
+    status: {
+        type: String,
+        enum: ['draft', 'published', 'archived'],
+        default: 'published'
+    },
+    likes: {
+        type: Number,
+        default: 0
+    },
+    views: {
+        type: Number,
+        default: 0
     },
     createdAt: {
         type: Date,
@@ -72,5 +78,14 @@ artworkSchema.pre('save', function(next) {
     this.updatedAt = new Date();
     next();
 });
+
+// Virtual for formatted date
+artworkSchema.virtual('formattedDate').get(function() {
+    return this.createdAt.toLocaleDateString();
+});
+
+// Ensure virtuals are included in JSON output
+artworkSchema.set('toJSON', { virtuals: true });
+artworkSchema.set('toObject', { virtuals: true });
 
 module.exports = mongoose.model('Artwork', artworkSchema); 

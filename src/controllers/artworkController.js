@@ -3,21 +3,23 @@ const Artwork = require('../models/Artwork');
 // Create new artwork
 exports.createArtwork = async (req, res) => {
     try {
-        const artwork = new Artwork({
+        const artworkData = {
             ...req.body,
-            userId: req.body.userId // In production, this would come from authenticated user
-        });
+            userId: req.user.id
+        };
+        const artwork = new Artwork(artworkData);
         const savedArtwork = await artwork.save();
         res.status(201).json(savedArtwork);
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        res.status(400).json({ message: 'Error creating artwork', error: error.message });
     }
 };
 
-// Get all artworks for a user
+// Get all artworks for the authenticated user
 exports.getUserArtworks = async (req, res) => {
     try {
-        const artworks = await Artwork.find({ userId: req.params.userId });
+        const artworks = await Artwork.find({ userId: req.user.id })
+            .sort({ createdAt: -1 });
         res.json(artworks);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -31,22 +33,37 @@ exports.getArtwork = async (req, res) => {
         if (!artwork) {
             return res.status(404).json({ message: 'Artwork not found' });
         }
+        
+        // Ensure user owns the artwork
+        if (artwork.userId.toString() !== req.user.id) {
+            return res.status(403).json({ message: 'Not authorized to access this artwork' });
+        }
+        
         res.json(artwork);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
-// Update artwork analysis
-exports.updateArtworkAnalysis = async (req, res) => {
+// Update artwork
+exports.updateArtwork = async (req, res) => {
     try {
         const artwork = await Artwork.findById(req.params.id);
         if (!artwork) {
             return res.status(404).json({ message: 'Artwork not found' });
         }
 
-        artwork.analyses.push(req.body.analysis);
-        const updatedArtwork = await artwork.save();
+        // Ensure user owns the artwork
+        if (artwork.userId.toString() !== req.user.id) {
+            return res.status(403).json({ message: 'Not authorized to update this artwork' });
+        }
+
+        const updatedArtwork = await Artwork.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true, runValidators: true }
+        );
+
         res.json(updatedArtwork);
     } catch (error) {
         res.status(400).json({ message: error.message });
@@ -60,6 +77,12 @@ exports.deleteArtwork = async (req, res) => {
         if (!artwork) {
             return res.status(404).json({ message: 'Artwork not found' });
         }
+        
+        // Ensure user owns the artwork
+        if (artwork.userId.toString() !== req.user.id) {
+            return res.status(403).json({ message: 'Not authorized to delete this artwork' });
+        }
+        
         await Artwork.deleteOne({ _id: req.params.id });
         res.json({ message: 'Artwork deleted' });
     } catch (error) {
