@@ -24,8 +24,10 @@ app.get('/', (req, res) => {
 
 // Routes
 app.use('/api/artworks', require('./routes/artworks'));
+app.use('/api/analyses', require('./routes/analyses'));
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/plans', require('./routes/plans'));
+app.use('/api/notifications', require('./routes/notificationRoutes'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

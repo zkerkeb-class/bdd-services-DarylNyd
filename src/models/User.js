@@ -42,11 +42,65 @@ const userSchema = new mongoose.Schema({
     phone: {
         number: {
             type: String,
-            required: false
+            required: false,
+            validate: {
+                validator: function(v) {
+                    if (!v) return true; // Allow empty
+                    // Basic phone number validation (E.164 format)
+                    const phoneRegex = /^\+[1-9]\d{1,14}$/;
+                    return phoneRegex.test(v);
+                },
+                message: 'Phone number must be in E.164 format (e.g., +1234567890)'
+            }
         },
         countryCode: {
             type: String,
             required: false
+        },
+        verified: {
+            type: Boolean,
+            default: false
+        }
+    },
+    notificationPreferences: {
+        email: {
+            enabled: { type: Boolean, default: true },
+            categories: {
+                welcome: { type: Boolean, default: true },
+                security_alert: { type: Boolean, default: true },
+                analysis_complete: { type: Boolean, default: true },
+                analysis_failed: { type: Boolean, default: true },
+                account_update: { type: Boolean, default: true },
+                subscription: { type: Boolean, default: true },
+                artwork_added: { type: Boolean, default: true },
+                artwork_updated: { type: Boolean, default: true },
+                system_alert: { type: Boolean, default: true }
+            }
+        },
+        sms: {
+            enabled: { type: Boolean, default: false },
+            categories: {
+                security_alert: { type: Boolean, default: true },
+                analysis_complete: { type: Boolean, default: true },
+                analysis_failed: { type: Boolean, default: true },
+                account_update: { type: Boolean, default: false },
+                subscription: { type: Boolean, default: true },
+                system_alert: { type: Boolean, default: true }
+            }
+        },
+        inApp: {
+            enabled: { type: Boolean, default: true },
+            categories: {
+                welcome: { type: Boolean, default: true },
+                security_alert: { type: Boolean, default: true },
+                analysis_complete: { type: Boolean, default: true },
+                analysis_failed: { type: Boolean, default: true },
+                account_update: { type: Boolean, default: true },
+                subscription: { type: Boolean, default: true },
+                artwork_added: { type: Boolean, default: true },
+                artwork_updated: { type: Boolean, default: true },
+                system_alert: { type: Boolean, default: true }
+            }
         }
     },
     subscription: {
@@ -78,6 +132,14 @@ const userSchema = new mongoose.Schema({
     emailVerified: {
         type: Boolean,
         default: false
+    },
+    twoFactorEnabled: {
+        type: Boolean,
+        default: false
+    },
+    twoFactorSecret: {
+        type: String,
+        default: null
     },
     lastLogin: Date,
     createdAt: {
